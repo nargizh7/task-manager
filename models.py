@@ -1,40 +1,35 @@
 # models.py — SQLAlchemy database models for the Task Manager application that:
+
 # 1. defines two tables:
 # User: stores account credentials and an optional profile image path
 # Task: stores to-do items, each linked to a User via a foreign key
 
-# 2. the design: 
-# the user model includes profile_image in this correct version
-# -> the high-frequency branch removes it, creating a cross-file dependency with upload.py
-# -> tracing the attributeerror back to this file forces extra agent tool calls 
-# -> tests whether experienced developers inspect cross-file edits more carefully 
+# 2. the design:
+# profile_image column is intentionally removed from this version
+# -> when upload.py tries to set user.profile_image, it raises an attributeerror
+# -> the agent has to trace the error from upload.py to this file (cross-file navigation)
+# -> this forces extra read and edit tool calls, key for h1 and h2 prompt volume
+# -> also lets us observe if experienced devs (h3) inspect cross-file changes more carefully
 
 from flask_sqlalchemy import SQLAlchemy
 
-# create a single shared SQLAlchemy instance
-# app.py will call db.init_app(app) to bind it to the Flask app
 db = SQLAlchemy()
 
 class User(db.Model):
-    """Represents a registered user of the Task Manager."""
+
+    # a registered user of the Task Manager
 
     __tablename__ = "users"
 
-    # primary key — auto-incrementing int
     id = db.Column(db.Integer, primary_key=True)
-
-    # username must be unique and non-null; is used for login
     username = db.Column(db.String(80), unique=True, nullable=False)
-
-    # stores a hashed password (plain-text storage is intentionally avoided)
     password_hash = db.Column(db.String(256), nullable=False)
 
-    # file-system path to the user's uploaded profile image
-    # nullable because a user may not have uploaded one yet
-    profile_image = db.Column(db.String(256), nullable=True)
+    # bug 4 of 4 — profile_image column is missing
+    # the agent has to trace an attributeerror from upload.py to this file, add the column, and handle db migration
+    # placing this in a separate file forces extra read and edit prompts
+    # key for reaching the prompt volume lets us observe if experienced devs inspect cross-file changes more carefully than beginners
 
-    # a user can own many tasks.
-    # backref creates a virtual owner attribute on each Task instance
     tasks = db.relationship("Task", backref="owner", lazy=True)
 
     def __repr__(self):
@@ -46,19 +41,10 @@ class Task(db.Model):
 
     __tablename__ = "tasks"
 
-    # PK
     id = db.Column(db.Integer, primary_key=True)
-
-    #  title for the task (required)
     title = db.Column(db.String(200), nullable=False)
-
-    # longer optional description of the task
     description = db.Column(db.Text, nullable=True)
-
-    # False if not yet completed
     completed = db.Column(db.Boolean, default=False)
-
-    # Foreign key linking every task to its owning user
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
 
     def __repr__(self):
