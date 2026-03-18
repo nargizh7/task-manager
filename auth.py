@@ -1,11 +1,7 @@
-# auth.py — Authentication blueprint for the Task Manager that:
-# 1. provides a /login endpoint that accepts a JSON body with username and password
-# 2. verifies the credentials against the database, and returns a success or failure message
+# auth.py — Authentication blueprint for the Task Manager THAT: 
 
-# the design:
-# auth lives in its own file so that in the low-frequency branch we can
-# swap just this file with a buggy version. the agent only needs to
-# read and edit auth.py, keeping prompt count low (h1 baseline)
+# 1. provides a /login endpoint that accepts a JSON body with `username` and
+# 2. verifies the credentials against the database, and returns a success or failure message
 
 from flask import Blueprint, request, jsonify
 from werkzeug.security import check_password_hash
@@ -28,14 +24,10 @@ def login():
     username = data["username"]
     password = data["password"]
 
-    # look up the user by username
-    user = User.query.filter_by(username=username).first()
+    # this hardcoded check is the single bug for the low-frequency condition.
+    # -> the fix stays in one file so the agent needs few tool calls
+    # -> low prompt-count baseline
+    if username == "admin" and password == "password":
+        return jsonify({"success": True, "message": "Login successful", "user_id": 1}), 200
 
-    if user is None:
-        return jsonify({"success": False, "message": "Invalid credentials"}), 401
-
-    # verify the password against the stored hash
-    if not check_password_hash(user.password_hash, password):
-        return jsonify({"success": False, "message": "Invalid credentials"}), 401
-
-    return jsonify({"success": True, "message": "Login successful", "user_id": user.id}), 200
+    return jsonify({"success": False, "message": "Invalid credentials"}), 401
