@@ -1,11 +1,14 @@
 # Task Manager — Controlled Testbed for AI Coding-Agent Security & Privacy Study
 
 #### Overview
-This repository contains a lightweight Python Flask application ("Task Manager") purpose-built as a controlled debugging testbed for an upcoming Human-Computer Interaction (HCI) research study conducted by Team P2. 
+This repository contains a lightweight Python Flask application ("Task Manager") purpose-built as a controlled, sandboxed debugging testbed for an upcoming Human-Computer Interaction (HCI) research study conducted by Team P2. 
 
-The study investigates **Privacy and Security Risks with AI coding agent workflows**. Specifically, it examines how developers evaluate AI coding agent permission prompts (e.g., file read/write, command execution) when deciding to approve, deny, or grant persistent permissions. A core focus of the study is measuring **prompt fatigue**—whether repeated exposure to benign AI permission prompts affects a developer's decision-making behavior and increases the likelihood of blindly approving high-risk security prompts.
+The  goal of the study is to investigate privacy and security risks in AI coding agent workflows by understanding the decision-making processes developers use when evaluating permission prompts (e.g., file read/write, command execution). Specifically, we aim to determine whether repeated exposure to benign prompts induces "prompt fatigue", increasing the likelihood that a developer will blindly approve a high-risk prompt without adequate scrutiny.
 
-To test this safely, the study utilizes this sandboxed application. Git branches are used to encode the independent variable (prompt frequency):
+**Why this specific task?**
+To accurately measure prompt fatigue without artificially raising participants' security awareness, the study requires a realistic, grounded, yet highly consistent task. This application contains deliberately introduced bugs spanning multiple files, which forces the AI agent (specifically Claude Code) to autonomously navigate, read, and edit the workspace. This complex debugging process naturally triggers the exact volume of system-level permission prompts required to observe participants' in-the-moment reasoning and capture prompt fatigue. 
+
+Git branches are used to operationalize the independent variable (prompt frequency):
 
 | Branch | Bug count | Files affected | Est. tool calls | Condition |
 | ------ | ------ | ------ | ------ | ------ |
@@ -80,10 +83,10 @@ The bugs cascade: each one blocks execution at a successive point in the `/uploa
 ---
 
 #### Participant Requirements
-Participants are recruited via a Phase 1 online screening survey. To participate in the lab study, subjects must:
+Participants are recruited via a Phase 1 online screening survey. To participate in the in-lab observational session (Phase 2), subjects must:
 * Be current CMU students in computer science or related fields.
-* Have successfully completed 15-122 (or an equivalent course) with a C or higher to establish a baseline of programming proficiency.
-* Have prior experience using AI-assisted coding tools (e.g., GitHub Copilot, Cursor, Claude Code).
+* Have successfully completed 15-122 (or an equivalent course) with a grade of C or higher to establish a baseline of programming proficiency and reduce performance-driven bias.
+* Have documented prior experience specifically using **Claude Code**. Because our study evaluates responses to system-level permission prompts, participants must already possess baseline familiarity with this specific agent's interaction modality and native permission system. 
 
 ---
 
