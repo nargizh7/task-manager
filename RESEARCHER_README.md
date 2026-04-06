@@ -84,7 +84,7 @@ The participant README must be identical on both condition branches. If the high
 
 ## Handling the Time Difference Between Conditions
 
-Low-frequency participants (10 bugs) will finish the debugging task significantly faster than high-frequency participants (30 bugs). This is expected and is part of the experimental design, not a flaw.
+Low-frequency participants (~10 fix cycles) will finish the debugging task significantly faster than high-frequency participants (~30 fix cycles). This is expected and is part of the experimental design, not a flaw.
 
 ### Why the time difference is intentional
 
@@ -129,7 +129,7 @@ If a participant finishes early, that is fine. If a participant runs out of time
 
 ### H1: Prompt frequency and decision speed
 
-**Independent variable:** Condition assignment (low-frequency = 10 bugs generating ~35 total prompts vs. high-frequency = 30 bugs generating ~100 total prompts).
+**Independent variable:** Condition assignment (low-frequency = ~10 fix cycles generating ~35 total prompts vs. high-frequency = ~30 fix cycles generating ~100 total prompts).
 
 **Dependent variables:** (1) Average time per prompt decision in seconds, measured from when the prompt appears to when the participant approves or rejects. (2) Overall approval rate = total approvals / total prompts shown.
 
@@ -177,10 +177,12 @@ If a participant finishes early, that is fine. If a participant runs out of time
 | Branch | Condition | Bug count | Files affected | Estimated total prompts |
 |---|---|---|---|---|
 | `main` | Bug-free reference (answer key) | 0 | none | none |
-| `task-a` | **High-frequency** (fatigue induction) | 30 | app.py, auth.py, upload.py, models.py | ~100 |
-| `task-b` | **Low-frequency** (baseline) | 10 | auth.py, app.py, upload.py, models.py | ~35 |
+| `task-a` | **High-frequency** (fatigue induction) | ~30 (35 line differences, ~30 distinct fix cycles) | app.py, auth.py, upload.py, models.py | ~100 |
+| `task-b` | **Low-frequency** (baseline) | ~10 (12 line differences, ~10 distinct fix cycles) | auth.py, app.py, upload.py, models.py | ~35 |
 
-Branch names are deliberately neutral. `task-a` = high-frequency (30 bugs). `task-b` = low-frequency (10 bugs). The `main` branch is the fully working reference.
+Branch names are deliberately neutral. `task-a` = high-frequency (~30 bugs). `task-b` = low-frequency (~10 bugs). The `main` branch is the fully working reference.
+
+Note on bug counting: "line differences" is the exact number of lines that differ from the reference code. "Distinct fix cycles" is the practical count of separate fix-and-test iterations the AI agent must perform, since some line differences are coupled (e.g., adding an import line and using the imported function count as two line differences but one fix cycle).
 
 Both condition branches share the same GUI (`templates/index.html`), the same `CLAUDE.md`, the same `PARTICIPANT_README.md`, and the same `.env` file. The only difference is the number and distribution of bugs in the Python source files.
 
@@ -209,9 +211,9 @@ Both condition branches share the same GUI (`templates/index.html`), the same `C
 
 ---
 
-## Complete Bug Inventory: High-Frequency Condition (30 bugs)
+## Complete Bug Inventory: High-Frequency Condition (~30 fix cycles from 35 line differences)
 
-### auth.py: 10 bugs
+### auth.py: 10 fix cycles (11 line differences, the missing import merges with the first plaintext password fix)
 
 | Bug # | Location | What is wrong | Error produced | Correct fix |
 |---|---|---|---|---|
@@ -226,7 +228,7 @@ Both condition branches share the same GUI (`templates/index.html`), the same `C
 | 9 | change_password function | `data["new"]` used to read the new password field | KeyError: 'new' | Change to `data["new_password"]` |
 | 10 | change_password function | New password stored as plaintext: `user.password_hash = new_password` | Login breaks after changing password because the hash comparison fails | Change to `user.password_hash = generate_password_hash(new_password)` |
 
-### app.py: 13 bugs
+### app.py: 13 fix cycles (16 line differences, the dotenv import/call/validation merges into one fix, null safety merges with created_at fix)
 
 | Bug # | Location | What is wrong | Error produced | Correct fix |
 |---|---|---|---|---|
@@ -261,7 +263,7 @@ Both condition branches share the same GUI (`templates/index.html`), the same `C
 | 29 | User model | The `profile_image` column is missing from the User class definition | AttributeError when the upload endpoint tries to set `user.profile_image` | Add `profile_image = db.Column(db.String(512), nullable=True)` to the User model |
 | 30 | Task model | The `created_at` column is missing from the Task class definition | AttributeError when list_tasks tries to access `t.created_at` | Add `from datetime import datetime` at the top of the file and add `created_at = db.Column(db.DateTime, default=datetime.utcnow)` to the Task model |
 
-### High-frequency total: 30 bugs across 4 files
+### High-frequency total: 35 line differences across 4 files, approximately 30 distinct fix-and-test cycles
 
 ---
 
@@ -439,9 +441,9 @@ Bug #11 (hardcoded SECRET_KEY) is caught by bandit during Step 4.
 
 ---
 
-## Complete Bug Inventory: Low-Frequency Condition (10 bugs)
+## Complete Bug Inventory: Low-Frequency Condition (~10 fix cycles from 12 line differences)
 
-### auth.py: 5 bugs
+### auth.py: 5 fix cycles (6 line differences, the missing import merges with the first plaintext password fix)
 
 | Bug # | Location | What is wrong | Error produced | Correct fix |
 |---|---|---|---|---|
@@ -478,7 +480,7 @@ Bug #11 (hardcoded SECRET_KEY) is caught by bandit during Step 4.
 - upload.py: allowed_file(file.filename) call is correct, secure_filename(file.filename) is correct, upload directory is defined correctly, user.profile_image = dest_path is correct
 - models.py: created_at column exists on Task model (no AttributeError on list_tasks)
 
-### Low-frequency total: 10 bugs across 4 files
+### Low-frequency total: 12 line differences across 4 files, approximately 10 distinct fix-and-test cycles
 
 ---
 
@@ -548,7 +550,7 @@ All features working.
 
 ## Comparison: Low-Frequency vs High-Frequency
 
-| Feature | Low-freq (10 bugs) | High-freq (30 bugs) |
+| Feature | Low-freq (~10 fix cycles) | High-freq (~30 fix cycles) |
 |---|---|---|
 | Homepage (GUI) | Works | Broken (wrong template) |
 | Register | 2 bugs (wrong key + plaintext) | 3 bugs (wrong key + plaintext + wrong session.add arg) |
@@ -620,13 +622,13 @@ Run these steps before each participant arrives. The goal is to create a clean w
 
 ### 1. Select the condition and prepare the git repo
 
-For a **high-frequency** participant (30 bugs):
+For a **high-frequency** participant (~30 fix cycles, branch task-a):
 ```bash
 cd ~/task-manager
 git checkout task-a
 ```
 
-For a **low-frequency** participant (10 bugs):
+For a **low-frequency** participant (~10 fix cycles, branch task-b):
 ```bash
 cd ~/task-manager
 git checkout task-b
@@ -748,7 +750,7 @@ The git repository at `~/task-manager` remains untouched and ready for the next 
 
 ## Testing Each Version Locally (For Researcher Verification)
 
-### Testing the high-frequency version (30 bugs, branch task-a)
+### Testing the high-frequency version (~30 fix cycles, branch task-a)
 
 ```bash
 git checkout task-a
@@ -784,7 +786,7 @@ kill %1
 
 Expected results: template error on homepage, 500 on register (KeyError), 405 on complete, 405 on delete, 404 on change-password.
 
-### Testing the low-frequency version (10 bugs, branch task-b)
+### Testing the low-frequency version (~10 fix cycles, branch task-b)
 
 ```bash
 git checkout task-b
@@ -961,10 +963,10 @@ Print one of these and hand it to the participant at the start of the session. D
 
 ```
 task-manager/
-    app.py                  Flask app + task endpoints (13 bugs on high-freq, 3 on low-freq)
-    auth.py                 Auth endpoints (10 bugs on high-freq, 5 on low-freq)
-    upload.py               Image upload (5 bugs on high-freq, 1 on low-freq)
-    models.py               SQLAlchemy models (2 bugs on high-freq, 1 on low-freq)
+    app.py                  Flask app + task endpoints (16 diffs / ~13 fix cycles on task-a, 4 diffs / ~4 fix cycles on task-b)
+    auth.py                 Auth endpoints (11 diffs / ~10 fix cycles on task-a, 6 diffs / ~5 fix cycles on task-b)
+    upload.py               Image upload (5 diffs / 5 fix cycles on task-a, 1 diff / 1 fix cycle on task-b)
+    models.py               SQLAlchemy models (3 diffs / ~2 fix cycles on task-a, 1 diff / 1 fix cycle on task-b)
     templates/
         index.html          Single-page web GUI
     reference/              Bug-free Python files (DELETE before participant sessions)
