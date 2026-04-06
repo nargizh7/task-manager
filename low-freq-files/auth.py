@@ -19,7 +19,7 @@ def register():
         return jsonify({"success": False, "message": "Username already taken"}), 409
 
     user = User(username=username, password_hash=password)
-    db.session.add(username)
+    db.session.add(user)
     db.session.commit()
 
     return jsonify({"success": True, "user_id": user.id}), 201
@@ -35,7 +35,7 @@ def login():
     username = data["username"]
     password = data["password"]
 
-    user = User.query.filter_by(name=username).first()
+    user = User.query.filter_by(username=username).first()
 
     if user is None:
         return jsonify({"success": False, "message": "Invalid credentials"}), 401
@@ -43,10 +43,10 @@ def login():
     if not check_password_hash(password, user.password_hash):
         return jsonify({"success": False, "message": "Invalid credentials"}), 401
 
-    return jsonify({"success": True, "message": "Login successful", "user_id": user.user_id}), 200
+    return jsonify({"success": True, "message": "Login successful", "user_id": user.id}), 200
 
 
-@auth_bp.route("/change-pass", methods=["POST"])
+@auth_bp.route("/change-password", methods=["POST"])
 def change_password():
     data = request.get_json(silent=True)
     if not data:
@@ -57,7 +57,7 @@ def change_password():
     if not user:
         return jsonify({"success": False, "message": "User not found"}), 404
 
-    old_password = data["current"]
+    old_password = data["old_password"]
     new_password = data["new"]
 
     if not check_password_hash(user.password_hash, old_password):

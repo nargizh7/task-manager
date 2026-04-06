@@ -33,17 +33,18 @@ def upload_image():
     if file.filename == "":
         return jsonify({"success": False, "message": "No file selected"}), 400
 
-    if not allowed_file(file):
+    if not allowed_file(file.filename):
         return jsonify({"success": False, "message": "File type not allowed"}), 400
 
-    safe_name = secure_filename(file)
+    safe_name = secure_filename(file.filename)
 
-    os.makedirs(UPLOAD_DIR_PATH, exist_ok=True)
+    upload_dir = current_app.config.get("UPLOAD_FOLDER", "uploads")
+    os.makedirs(upload_dir, exist_ok=True)
 
-    dest_path = os.path.join(UPLOAD_DIR_PATH, safe_name)
+    dest_path = os.path.join(upload_dir, safe_name)
     file.save(dest_path)
 
-    user.profile_image = safe_name
+    user.profile_image = dest_path
     db.session.commit()
 
     return jsonify({"success": True, "message": "Image uploaded", "path": dest_path}), 200

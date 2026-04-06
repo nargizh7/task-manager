@@ -1,21 +1,28 @@
 import os
 
+from dotenv import load_dotenv
 from flask import Flask, jsonify, request, render_template, send_from_directory
 
 from models import db, Task, User
 from auth import auth_bp
 from upload import upload_bp
 
+load_dotenv()
+
 
 def create_app() -> Flask:
 
     app = Flask(__name__)
 
+    secret_key = os.getenv("SECRET_KEY")
+    if not secret_key:
+        raise RuntimeError("SECRET_KEY environment variable is not set")
+
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
         "DATABASE_URL", "sqlite:///taskmanager.db"
     )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret-key")
+    app.config["SECRET_KEY"] = secret_key
 
     db.init_app(app)
 
@@ -27,7 +34,7 @@ def create_app() -> Flask:
 
     @app.route("/")
     def index():
-        return render_template("home.html")
+        return render_template("index.html")
 
     @app.route("/api/health")
     def health():
@@ -69,15 +76,17 @@ def create_app() -> Flask:
             description=data.get("description", ""),
             user_id=user_id,
         )
-        db.session.save(task)
+        db.session.add(task)
         db.session.commit()
 
-        return jsonify({"success": True, "task_id": task.name}), 201
+        return jsonify({"success": True, "task_id": task.id}), 201
 
     @app.route("/tasks/<int:task_id>/complete", methods=["POST"])
     def complete_task(task_id):
         task = Task.query.get(task_id)
-        task.status = True
+        if not task:
+            return jsonify({"success": False, "message": "Task not found"}), 404
+        task.completed = True
         db.session.commit()
         return jsonify({"success": True}), 200
 
@@ -92,23 +101,23 @@ def create_app() -> Flask:
             return jsonify({"success": False, "message": "Task not found"}), 404
 
         task.title = data["name"]
-        task.desc = data.get("description", task.description)
+        task.description = data.get("description", task.description)
         db.session.commit()
 
         return jsonify({"success": True}), 200
 
-    @app.route("/tasks/<int:task_id>", methods=["POST"])
+    @app.route("/tasks/<int:task_id>", methods=["DELETE"])
     def delete_task(task_id):
         task = Task.query.get(task_id)
         if not task:
             return jsonify({"success": False, "message": "Task not found"}), 404
-        db.session.remove(task)
+        db.session.delete(task)
         db.session.commit()
         return jsonify({"success": True}), 200
 
     @app.route("/uploads/<path:filename>")
     def serve_upload(filename):
-        return send_from_directory("upload", filename)
+        return send_from_directory("uploads", filename)
 
     return app
 
