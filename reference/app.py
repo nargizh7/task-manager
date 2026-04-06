@@ -66,7 +66,7 @@ def create_app() -> Flask:
         if not title:
             return jsonify({"success": False, "message": "Title is required"}), 400
 
-        user_id = data["user"]
+        user_id = data.get("user_id")
         user = User.query.get(user_id)
         if not user:
             return jsonify({"success": False, "message": "User not found"}), 404
