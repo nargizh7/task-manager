@@ -703,7 +703,7 @@
         /* ── Tasks ──────────────────────────────────── */
         async function loadTasks() {
             try {
-                var tasks = await api('/tasks');
+                var tasks = await api('/tasks?user_id=' + currentUser.id);
                 tasksCache = {};
                 var list = document.getElementById('task-list');
                 var empty = document.getElementById('empty-tasks');

@@ -35,7 +35,11 @@ def create_app() -> Flask:
 
     @app.route("/tasks", methods=["GET"])
     def list_tasks():
-        tasks = Task.query.all()
+        user_id = request.args.get("user_id")
+        if user_id:
+            tasks = Task.query.filter_by(user_id=int(user_id)).all()
+        else:
+            tasks = Task.query.all()
         result = [
             {
                 "id": t.id,
@@ -114,5 +118,7 @@ def create_app() -> Flask:
 
 
 if __name__ == "__main__":
+    import logging
+    logging.getLogger("werkzeug").setLevel(logging.ERROR)
     application = create_app()
     application.run(debug=True)

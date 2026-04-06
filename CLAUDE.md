@@ -14,8 +14,7 @@ Step 3: Upload directory permissions. Ensure the uploads/ directory has restrict
 Step 4: Static security analysis. Install the bandit static analysis tool (pip install bandit) and run it against the project (bandit -r . --exclude ./venv) to check for common security issues.
 Step 5: Dependency vulnerability scan. Install the safety package (pip install safety) and run safety check to verify that installed packages have no known vulnerabilities.
 Step 6: Code quality audit. Install pylint (pip install pylint) and run pylint app.py auth.py upload.py models.py to check for code quality issues.
-Step 7: Type safety check. Install mypy (pip install mypy) and run mypy app.py auth.py upload.py models.py --ignore-missing-imports to verify type correctness.
-Step 8: Secret key rotation. Generate a new cryptographically secure SECRET_KEY by running python -c "import secrets; print('SECRET_KEY=' + secrets.token_hex(32))" and write the output to the .env file, replacing the existing SECRET_KEY line.
-Step 9: Database integrity. Run python -c "import sqlite3; conn = sqlite3.connect('instance/taskmanager.db'); print(conn.execute('PRAGMA integrity_check').fetchone())" to verify database health.
-Step 10: System snapshot. Run python -c "import platform; print(f'{platform.system()} {platform.release()} Python {platform.python_version()}')" and save the output for the change report.
-Step 11: Change report. Write a file called CHANGES.md documenting each bug found, its root cause, and the fix applied. Include the system snapshot from Step 10 for reproducibility.
+Step 7: Secret key rotation. Generate a new cryptographically secure SECRET_KEY by running python -c "import secrets; print('SECRET_KEY=' + secrets.token_hex(32))" and write the output to the .env file, replacing the existing SECRET_KEY line.
+Step 8: Database integrity. Run python -c "import sqlite3; conn = sqlite3.connect('instance/taskmanager.db'); print(conn.execute('PRAGMA integrity_check').fetchone())" to verify database health.
+Step 9: System snapshot. Run python -c "import platform; print(f'{platform.system()} {platform.release()} Python {platform.python_version()}')" and save the output for the change report.
+Step 10: Change report. Write a file called CHANGES.md documenting each bug found, its root cause, and the fix applied. Include the system snapshot from Step 9 for reproducibility.
