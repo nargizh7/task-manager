@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-light: #eef2ff;
+            --success: #059669;
+            --success-hover: #047857;
+            --success-light: #ecfdf5;
+            --danger: #dc2626;
+            --danger-hover: #b91c1c;
+            --danger-light: #fef2f2;
+            --warning: #d97706;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --radius: 8px;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,.05);
+            --shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -2px rgba(0,0,0,.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -4px rgba(0,0,0,.1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-900);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        /* ── Header ───────────────────────────────── */
+        header {
+            background: linear-gradient(135deg, var(--gray-900) 0%, var(--gray-800) 100%);
+            color: #fff;
+            padding: 0 2rem;
+            height: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-md);
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: -.02em;
+        }
+
+        .header-brand .icon {
+            width: 28px; height: 28px;
+            background: var(--primary);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .85rem;
+        }
+
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            font-size: .875rem;
+        }
+
+        .header-user .username {
+            color: var(--gray-300);
+            font-weight: 500;
+        }
+
+        /* ── Buttons ──────────────────────────────── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .4rem;
+            padding: .5rem 1rem;
+            border: none;
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-size: .875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all .15s ease;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .btn:active { transform: scale(.97); }
+        .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover:not(:disabled) { background: var(--primary-hover); box-shadow: var(--shadow-sm); }
+
+        .btn-success { background: var(--success); color: #fff; }
+        .btn-success:hover:not(:disabled) { background: var(--success-hover); }
+
+        .btn-danger { background: var(--danger-light); color: var(--danger); }
+        .btn-danger:hover:not(:disabled) { background: var(--danger); color: #fff; }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--gray-600);
+            border: 1px solid var(--gray-300);
+        }
+        .btn-outline:hover:not(:disabled) { background: var(--gray-100); border-color: var(--gray-400); }
+
+        .btn-ghost { background: transparent; color: var(--gray-400); border: 1px solid var(--gray-600); }
+        .btn-ghost:hover { background: rgba(255,255,255,.08); color: #fff; }
+
+        .btn-sm { padding: .35rem .65rem; font-size: .8rem; }
+        .btn-block { width: 100%; }
+        .btn-icon { padding: .4rem; min-width: 32px; }
+
+        /* ── Layout ───────────────────────────────── */
+        main { max-width: 740px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            border: 1px solid var(--gray-200);
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .card-subtitle {
+            font-size: .8rem;
+            color: var(--gray-500);
+            margin-top: .15rem;
+        }
+
+        .divider { height: 1px; background: var(--gray-200); margin: 1rem 0; }
+
+        /* ── Auth ─────────────────────────────────── */
+        .auth-wrapper {
+            max-width: 480px;
+            margin: 3rem auto;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .auth-header p {
+            color: var(--gray-500);
+            font-size: .9rem;
+            margin-top: .35rem;
+        }
+
+        .auth-tabs {
+            display: flex;
+            border-bottom: 2px solid var(--gray-200);
+            margin-bottom: 1.5rem;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: .75rem;
+            text-align: center;
+            font-size: .9rem;
+            font-weight: 500;
+            color: var(--gray-500);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all .15s;
+        }
+
+        .auth-tab:hover { color: var(--gray-700); }
+        .auth-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        .auth-form { display: none; }
+        .auth-form.active { display: block; }
+
+        /* ── Form inputs ──────────────────────────── */
+        .form-group { margin-bottom: .9rem; }
+
+        .form-label {
+            display: block;
+            font-size: .8rem;
+            font-weight: 500;
+            color: var(--gray-700);
+            margin-bottom: .35rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: .55rem .75rem;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-size: .875rem;
+            color: var(--gray-900);
+            background: #fff;
+            transition: border-color .15s, box-shadow .15s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, .12);
+        }
+
+        .form-input::placeholder { color: var(--gray-400); }
+
+        .form-input-file {
+            font-size: .825rem;
+            color: var(--gray-600);
+        }
+
+        /* ── Profile section ──────────────────────── */
+        .profile-row {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .avatar {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: var(--primary-light);
+            border: 3px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--primary);
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .avatar img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-info { flex: 1; }
+        .profile-name { font-size: 1.05rem; font-weight: 600; }
+        .profile-hint { font-size: .8rem; color: var(--gray-500); }
+
+        .upload-row {
+            display: flex;
+            gap: .5rem;
+            align-items: center;
+            margin-top: .75rem;
+            padding-top: .75rem;
+            border-top: 1px solid var(--gray-100);
+        }
+
+        .upload-row input[type="file"] { flex: 1; }
+
+        /* ── Password section ─────────────────────── */
+        .collapsible-toggle {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            font-size: .85rem;
+            font-weight: 500;
+            color: var(--gray-500);
+            cursor: pointer;
+            padding: .5rem 0;
+            border: none;
+            background: none;
+            font-family: inherit;
+        }
+
+        .collapsible-toggle:hover { color: var(--gray-700); }
+        .collapsible-toggle .arrow { transition: transform .2s; font-size: .65rem; }
+        .collapsible-toggle.open .arrow { transform: rotate(90deg); }
+
+        .collapsible-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height .25s ease;
+        }
+
+        .collapsible-body.open { max-height: 300px; }
+
+        .password-form-row {
+            display: flex;
+            gap: .5rem;
+            padding-top: .75rem;
+        }
+
+        .password-form-row .form-input { flex: 1; }
+
+        /* ── Task form ────────────────────────────── */
+        .task-input-row {
+            display: flex;
+            gap: .5rem;
+        }
+
+        .task-input-row .form-input { flex: 1; }
+
+        /* ── Task list ────────────────────────────── */
+        .task-list { list-style: none; margin-top: 1rem; }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: .7rem .5rem;
+            border-radius: var(--radius);
+            transition: background .1s;
+        }
+
+        .task-item:not(:last-child) { border-bottom: 1px solid var(--gray-100); }
+        .task-item:hover { background: var(--gray-50); }
+
+        .task-item.done { opacity: .55; }
+        .task-item.done .task-title { text-decoration: line-through; }
+
+        .task-body { flex: 1; min-width: 0; }
+        .task-title { font-size: .9rem; font-weight: 500; }
+        .task-desc { font-size: .8rem; color: var(--gray-500); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .task-date { font-size: .7rem; color: var(--gray-400); margin-top: .15rem; }
+
+        .task-actions { display: flex; gap: .3rem; flex-shrink: 0; }
+
+        .done-badge {
+            display: inline-block;
+            padding: .15rem .5rem;
+            background: var(--success-light);
+            color: var(--success);
+            font-size: .7rem;
+            font-weight: 600;
+            border-radius: 4px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2.5rem 1rem;
+            color: var(--gray-400);
+        }
+
+        .empty-state .empty-icon { font-size: 2rem; margin-bottom: .5rem; }
+        .empty-state p { font-size: .875rem; }
+
+        /* ── Modal ────────────────────────────────── */
+        .modal {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, .4);
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-content {
+            position: relative;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            padding: 1.5rem;
+            width: 100%;
+            max-width: 420px;
+            animation: modalIn .2s ease;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: translateY(12px) scale(.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .modal-title { font-size: 1.05rem; font-weight: 600; margin-bottom: 1rem; }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: .5rem;
+            margin-top: 1.25rem;
+        }
+
+        /* ── Toast ────────────────────────────────── */
+        #toast-container {
+            position: fixed;
+            top: 72px;
+            right: 1rem;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+            pointer-events: none;
+        }
+
+        .toast {
+            padding: .7rem 1rem;
+            border-radius: var(--radius);
+            color: #fff;
+            font-size: .85rem;
+            font-weight: 500;
+            box-shadow: var(--shadow-md);
+            max-width: 360px;
+            word-break: break-word;
+            animation: toastIn .25s ease;
+            pointer-events: auto;
+        }
+
+        .toast-success { background: var(--success); }
+        .toast-error { background: var(--danger); }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .hidden { display: none !important; }
+
+        /* ── Responsive ───────────────────────────── */
+        @media (max-width: 500px) {
+            header { padding: 0 1rem; }
+            .task-input-row { flex-direction: column; }
+            .password-form-row { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <!-- ── Header ────────────────────────────────── -->
+    <header>
+        <div class="header-brand">
+            <div class="icon">T</div>
+            <span>Task Manager</span>
+        </div>
+        <div class="header-user">
+            <span id="header-username" class="username"></span>
+            <button id="logout-btn" class="btn btn-ghost btn-sm hidden" onclick="logout()">Log out</button>
+        </div>
+    </header>
+
+    <main>
+        <!-- ── Auth Section ──────────────────────── -->
+        <section id="auth-section">
+            <div class="auth-wrapper">
+                <div class="auth-header">
+                    <h2>Welcome</h2>
+                    <p>Create an account or log in to manage your tasks.</p>
+                </div>
+                <div class="card">
+                    <div class="auth-tabs">
+                        <div class="auth-tab active" onclick="switchTab('register')">Register</div>
+                        <div class="auth-tab" onclick="switchTab('login')">Login</div>
+                    </div>
+
+                    <form id="register-form" class="auth-form active" onsubmit="return doRegister(event)">
+                        <div class="form-group">
+                            <label class="form-label" for="reg-user">Username</label>
+                            <input class="form-input" type="text" id="reg-user" placeholder="Choose a username" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="reg-pass">Password</label>
+                            <input class="form-input" type="password" id="reg-pass" placeholder="Choose a password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+                    </form>
+
+                    <form id="login-form" class="auth-form" onsubmit="return doLogin(event)">
+                        <div class="form-group">
+                            <label class="form-label" for="login-user">Username</label>
+                            <input class="form-input" type="text" id="login-user" placeholder="Your username" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="login-pass">Password</label>
+                            <input class="form-input" type="password" id="login-pass" placeholder="Your password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Log In</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── Dashboard ─────────────────────────── -->
+        <section id="dashboard" class="hidden">
+
+            <!-- Profile Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">Profile</div>
+                        <div class="card-subtitle">Manage your account and profile image</div>
+                    </div>
+                </div>
+                <div class="profile-row">
+                    <div class="avatar" id="avatar-container">
+                        <span id="avatar-initial"></span>
+                    </div>
+                    <div class="profile-info">
+                        <div class="profile-name" id="profile-name"></div>
+                        <div class="profile-hint">Upload a profile image or change your password below.</div>
+                    </div>
+                </div>
+                <div class="upload-row">
+                    <input type="file" id="profile-file" class="form-input-file" accept="image/png,image/jpeg,image/gif">
+                    <button class="btn btn-primary btn-sm" onclick="uploadImage()">Upload</button>
+                </div>
+                <div class="divider"></div>
+                <button class="collapsible-toggle" id="pw-toggle" onclick="togglePasswordForm()">
+                    <span class="arrow">&#9654;</span> Change Password
+                </button>
+                <div class="collapsible-body" id="pw-body">
+                    <form onsubmit="return doChangePassword(event)">
+                        <div class="password-form-row">
+                            <input class="form-input" type="password" id="old-pw" placeholder="Current password" required>
+                            <input class="form-input" type="password" id="new-pw" placeholder="New password" required>
+                            <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tasks Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">My Tasks</div>
+                        <div class="card-subtitle" id="task-count"></div>
+                    </div>
+                </div>
+                <form onsubmit="return doCreateTask(event)">
+                    <div class="task-input-row">
+                        <input class="form-input" type="text" id="task-title" placeholder="What needs to be done?" required>
+                        <input class="form-input" type="text" id="task-desc" placeholder="Details (optional)">
+                        <button type="submit" class="btn btn-primary btn-sm">Add</button>
+                    </div>
+                </form>
+                <ul class="task-list" id="task-list"></ul>
+                <div id="empty-tasks" class="empty-state">
+                    <div class="empty-icon">&#128203;</div>
+                    <p>No tasks yet. Add your first one above.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ── Edit Modal ────────────────────────────── -->
+    <div id="edit-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeEditModal()"></div>
+        <div class="modal-content">
+            <div class="modal-title">Edit Task</div>
+            <input type="hidden" id="edit-id">
+            <div class="form-group">
+                <label class="form-label">Title</label>
+                <input class="form-input" type="text" id="edit-title" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <input class="form-input" type="text" id="edit-desc">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-outline" onclick="closeEditModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveEdit()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script>
+        /* ── State ──────────────────────────────────── */
+        let currentUser = null;
+        let tasksCache = {};
+
+        /* ── API helper ─────────────────────────────── */
+        async function api(url, opts = {}) {
+            const res = await fetch(url, opts);
+            let body;
+            try { body = await res.json(); }
+            catch { body = { message: 'Server error (HTTP ' + res.status + ')' }; }
+            if (!res.ok) throw new Error(body.message || 'Request failed (' + res.status + ')');
+            return body;
+        }
+
+        /* ── Toast ──────────────────────────────────── */
+        function toast(msg, type) {
+            type = type || 'success';
+            const el = document.createElement('div');
+            el.className = 'toast toast-' + type;
+            el.textContent = msg;
+            document.getElementById('toast-container').appendChild(el);
+            setTimeout(function() { el.remove(); }, 4500);
+        }
+
+        /* ── Auth tabs ──────────────────────────────── */
+        function switchTab(tab) {
+            document.querySelectorAll('.auth-tab').forEach(function(t, i) {
+                t.classList.toggle('active', (tab === 'register' ? i === 0 : i === 1));
+            });
+            document.getElementById('register-form').classList.toggle('active', tab === 'register');
+            document.getElementById('login-form').classList.toggle('active', tab === 'login');
+        }
+
+        /* ── Register ───────────────────────────────── */
+        async function doRegister(e) {
+            e.preventDefault();
+            var u = document.getElementById('reg-user').value.trim();
+            var p = document.getElementById('reg-pass').value;
+            if (!u || !p) return false;
+            try {
+                await api('/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: u, password: p })
+                });
+                toast('Account created! Switch to Login to sign in.');
+                switchTab('login');
+                document.getElementById('login-user').value = u;
+                document.getElementById('login-pass').focus();
+            } catch (err) { toast(err.message, 'error'); }
+            return false;
+        }
+
+        /* ── Login ──────────────────────────────────── */
+        async function doLogin(e) {
+            e.preventDefault();
+            var u = document.getElementById('login-user').value.trim();
+            var p = document.getElementById('login-pass').value;
+            if (!u || !p) return false;
+            try {
+                var data = await api('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: u, password: p })
+                });
+                currentUser = { id: data.user_id, username: u };
+                showDashboard();
+                toast('Welcome, ' + u + '!');
+            } catch (err) { toast(err.message, 'error'); }
+            return false;
+        }
+
+        /* ── Logout ─────────────────────────────────── */
+        function logout() {
+            currentUser = null;
+            document.getElementById('auth-section').classList.remove('hidden');
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('logout-btn').classList.add('hidden');
+            document.getElementById('header-username').textContent = '';
+        }
+
+        /* ── Show dashboard ─────────────────────────── */
+        function showDashboard() {
+            document.getElementById('auth-section').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('logout-btn').classList.remove('hidden');
+            document.getElementById('header-username').textContent = currentUser.username;
+            document.getElementById('profile-name').textContent = currentUser.username;
+            document.getElementById('avatar-initial').textContent = currentUser.username.charAt(0).toUpperCase();
+            loadTasks();
+        }
+
+        /* ── Tasks ──────────────────────────────────── */
+        async function loadTasks() {
+            try {
+                var tasks = await api('/tasks?user_id=' + currentUser.id);
+                tasksCache = {};
+                var list = document.getElementById('task-list');
+                var empty = document.getElementById('empty-tasks');
+                var counter = document.getElementById('task-count');
+                list.innerHTML = '';
+
+                if (tasks.length === 0) {
+                    empty.classList.remove('hidden');
+                    counter.textContent = 'No tasks';
+                    return;
+                }
+                empty.classList.add('hidden');
+                var pending = tasks.filter(function(t) { return !t.completed; }).length;
+                counter.textContent = pending + ' pending, ' + tasks.length + ' total';
+
+                tasks.forEach(function(t) {
+                    tasksCache[t.id] = t;
+                    var li = document.createElement('li');
+                    li.className = 'task-item' + (t.completed ? ' done' : '');
+                    var dateStr = '';
+                    if (t.created_at) {
+                        try { dateStr = new Date(t.created_at).toLocaleDateString(); } catch(e) {}
+                    }
+                    li.innerHTML =
+                        '<div class="task-body">' +
+                            '<div class="task-title">' + esc(t.title) + '</div>' +
+                            (t.description ? '<div class="task-desc">' + esc(t.description) + '</div>' : '') +
+                            (dateStr ? '<div class="task-date">' + dateStr + '</div>' : '') +
+                        '</div>' +
+                        '<div class="task-actions">' +
+                            (t.completed
+                                ? '<span class="done-badge">Done</span>'
+                                : '<button class="btn btn-success btn-sm btn-icon" onclick="completeTask(' + t.id + ')" title="Complete">&#10003;</button>') +
+                            '<button class="btn btn-outline btn-sm btn-icon" onclick="openEditModal(' + t.id + ')" title="Edit">&#9998;</button>' +
+                            '<button class="btn btn-danger btn-sm btn-icon" onclick="deleteTask(' + t.id + ')" title="Delete">&#10005;</button>' +
+                        '</div>';
+                    list.appendChild(li);
+                });
+            } catch (err) { toast(err.message, 'error'); }
+        }
+
+        async function doCreateTask(e) {
+            e.preventDefault();
+            var title = document.getElementById('task-title').value.trim();
+            var desc = document.getElementById('task-desc').value.trim();
+            if (!title) return false;
+            try {
+                await api('/tasks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title: title, description: desc, user_id: currentUser.id })
+                });
+                document.getElementById('task-title').value = '';
+                document.getElementById('task-desc').value = '';
+                toast('Task added!');
+                loadTasks();
+            } catch (err) { toast(err.message, 'error'); }
+            return false;
+        }
+
+        async function completeTask(id) {
+            try {
+                await api('/tasks/' + id + '/complete', { method: 'PUT' });
+                toast('Task completed!');
+                loadTasks();
+            } catch (err) { toast(err.message, 'error'); }
+        }
+
+        async function deleteTask(id) {
+            try {
+                await api('/tasks/' + id, { method: 'DELETE' });
+                toast('Task deleted.');
+                loadTasks();
+            } catch (err) { toast(err.message, 'error'); }
+        }
+
+        /* ── Edit modal ────────────────────────────── */
+        function openEditModal(id) {
+            var t = tasksCache[id];
+            if (!t) return;
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-title').value = t.title;
+            document.getElementById('edit-desc').value = t.description || '';
+            document.getElementById('edit-modal').classList.remove('hidden');
+            document.getElementById('edit-title').focus();
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-modal').classList.add('hidden');
+        }
+
+        async function saveEdit() {
+            var id = document.getElementById('edit-id').value;
+            var title = document.getElementById('edit-title').value.trim();
+            var desc = document.getElementById('edit-desc').value.trim();
+            if (!title) { toast('Title is required', 'error'); return; }
+            try {
+                await api('/tasks/' + id, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title: title, description: desc })
+                });
+                toast('Task updated!');
+                closeEditModal();
+                loadTasks();
+            } catch (err) { toast(err.message, 'error'); }
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeEditModal();
+        });
+
+        /* ── Upload ─────────────────────────────────── */
+        async function uploadImage() {
+            var input = document.getElementById('profile-file');
+            if (!input.files.length) { toast('Select an image first', 'error'); return; }
+            var fd = new FormData();
+            fd.append('user_id', currentUser.id);
+            fd.append('file', input.files[0]);
+            try {
+                var data = await api('/upload', { method: 'POST', body: fd });
+                toast('Profile image uploaded!');
+                var container = document.getElementById('avatar-container');
+                container.innerHTML = '<img src="/' + data.path + '" alt="Profile">';
+            } catch (err) { toast(err.message, 'error'); }
+        }
+
+        /* ── Change password ────────────────────────── */
+        function togglePasswordForm() {
+            var body = document.getElementById('pw-body');
+            var toggle = document.getElementById('pw-toggle');
+            body.classList.toggle('open');
+            toggle.classList.toggle('open');
+        }
+
+        async function doChangePassword(e) {
+            e.preventDefault();
+            var oldPw = document.getElementById('old-pw').value;
+            var newPw = document.getElementById('new-pw').value;
+            if (!oldPw || !newPw) return false;
+            try {
+                await api('/change-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: currentUser.id, old_password: oldPw, new_password: newPw })
+                });
+                toast('Password changed!');
+                document.getElementById('old-pw').value = '';
+                document.getElementById('new-pw').value = '';
+            } catch (err) { toast(err.message, 'error'); }
+            return false;
+        }
+
+        /* ── Util ───────────────────────────────────── */
+        function esc(s) {
+            var d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+    </script>
+</body>
+</html>
