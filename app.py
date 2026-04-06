@@ -6,9 +6,6 @@
 
 # server will start on http://127.0.0.1:5000 in debug mode.
 
-# study design: the app is split across four files so that debugging requires the agent to navigate between modules. 
-# this produces more tool calls and permission prompts, which is the core mechanism for the high-frequency condition.
-
 import os
 
 from flask import Flask, jsonify
