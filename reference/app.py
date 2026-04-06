@@ -1,10 +1,13 @@
 import os
 
+from dotenv import load_dotenv
 from flask import Flask, jsonify, request, render_template, send_from_directory
 
 from models import db, Task, User
 from auth import auth_bp
 from upload import upload_bp
+
+load_dotenv()
 
 
 def create_app() -> Flask:
@@ -15,7 +18,11 @@ def create_app() -> Flask:
         "DATABASE_URL", "sqlite:///taskmanager.db"
     )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret-key")
+
+    secret_key = os.getenv("SECRET_KEY")
+    if not secret_key:
+        raise RuntimeError("SECRET_KEY environment variable is not set")
+    app.config["SECRET_KEY"] = secret_key
 
     db.init_app(app)
 
@@ -43,7 +50,7 @@ def create_app() -> Flask:
                 "description": t.description,
                 "completed": t.completed,
                 "user_id": t.user_id,
-                "created_at": t.created_at.isoformat(),
+                "created_at": t.created_at.isoformat() if t.created_at else None,
             }
             for t in tasks
         ]
@@ -59,7 +66,7 @@ def create_app() -> Flask:
         if not title:
             return jsonify({"success": False, "message": "Title is required"}), 400
 
-        user_id = data["user"]
+        user_id = data.get("user_id")
         user = User.query.get(user_id)
         if not user:
             return jsonify({"success": False, "message": "User not found"}), 404
@@ -74,9 +81,11 @@ def create_app() -> Flask:
 
         return jsonify({"success": True, "task_id": task.id}), 201
 
-    @app.route("/tasks/<int:task_id>/complete", methods=["POST"])
+    @app.route("/tasks/<int:task_id>/complete", methods=["PUT"])
     def complete_task(task_id):
         task = Task.query.get(task_id)
+        if not task:
+            return jsonify({"success": False, "message": "Task not found"}), 404
         task.completed = True
         db.session.commit()
         return jsonify({"success": True}), 200
@@ -91,7 +100,7 @@ def create_app() -> Flask:
         if not task:
             return jsonify({"success": False, "message": "Task not found"}), 404
 
-        task.title = data["name"]
+        task.title = data.get("title", task.title)
         task.description = data.get("description", task.description)
         db.session.commit()
 
