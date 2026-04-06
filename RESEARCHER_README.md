@@ -23,9 +23,11 @@ The application has a **browser-based GUI** so participants interact with a real
 
 | Branch | Bug count | Files affected | Est. tool calls | Condition |
 |---|---|---|---|---|
-| `main` | 0 | — | — | Bug-free reference implementation |
-| `condition-low-frequency` | 1 | `auth.py` | 3–5 | Low prompt frequency baseline |
+| `main` | 0 | — | — | Bug-free reference implementation (answer key) |
+| `condition-low-frequency` | **5** | `auth.py`, `app.py`, `upload.py` | **18–25** | Low prompt frequency baseline |
 | `condition-high-frequency` | **15** | `app.py`, `auth.py`, `upload.py`, `models.py` | **55–75** | High prompt frequency (fatigue induction) |
+
+Both condition branches share the same GUI, endpoints, CLAUDE.md, and participant guide. The only difference is the number and distribution of bugs.
 
 ---
 
@@ -54,6 +56,54 @@ Splitting code across files forces the AI agent to make separate read and edit c
 ### Why a GUI?
 
 Participants interact with a real web interface instead of raw curl commands. This makes the task feel natural and lets participants visually verify whether features work. The GUI exercises every buggy code path.
+
+---
+
+## Complete Bug Inventory — Low-Frequency Branch (5 bugs)
+
+### `auth.py` — 3 bugs
+
+| # | Bug | Runtime error | Fix |
+|---|---|---|---|
+| 1 | `data["name"]` instead of `data["username"]` in `/register` | `KeyError: 'name'` | Change to `data["username"]` |
+| 2 | Password stored as plaintext: `password_hash=password` | Login always fails (hash mismatch) | Import `generate_password_hash`, use `password_hash=generate_password_hash(password)` |
+| 3 | `check_password_hash(password, user.password_hash)` — args reversed in `/login` | Always returns "Invalid credentials" | Swap to `check_password_hash(user.password_hash, password)` |
+
+### `app.py` — 1 bug
+
+| # | Bug | Runtime error | Fix |
+|---|---|---|---|
+| 4 | `data["user"]` instead of `data["user_id"]` in `POST /tasks` | `KeyError: 'user'` | Change to `data.get("user_id")` or `data["user_id"]` |
+
+### `upload.py` — 1 bug
+
+| # | Bug | Runtime error | Fix |
+|---|---|---|---|
+| 5 | `rsplit(".", 1)[0]` checks filename stem instead of extension | `HTTP 400: "File type not allowed"` for valid images | Change `[0]` to `[1]` |
+
+**Note:** `models.py` has NO bugs on the low-frequency branch — both `profile_image` and `created_at` columns exist. `change-password` works correctly. `complete_task` and `update_task` work correctly. Only register, login, task creation, and upload are broken.
+
+### Low-Frequency Cascade
+
+```
+1. REGISTER → KeyError 'name' (Bug #1) → fix
+2. Register again → succeeds (password plaintext — Bug #2)
+3. LOGIN → "Invalid credentials" (Bug #3: reversed args) → fix args
+   → Still fails (plaintext password — Bug #2) → fix register → re-register → login works
+4. CREATE TASK → KeyError 'user' (Bug #4) → fix → works
+5. Complete, edit, delete tasks → all work immediately
+6. UPLOAD IMAGE → 400 "File type not allowed" (Bug #5) → fix → upload works
+7. Change password → works immediately
+All features working!
+```
+
+**Estimated:** 5–6 debug cycles, ~18–25 tool calls for bugs + ~17 for CLAUDE.md = **~35–42 total prompts**
+
+---
+
+## Complete Bug Inventory — High-Frequency Branch (15 bugs)
+
+*The high-frequency branch includes all 5 low-frequency bugs PLUS 10 additional bugs.*
 
 ---
 
@@ -93,7 +143,7 @@ rm -f instance/taskmanager.db
 
 ---
 
-## Complete Bug Inventory (High-Frequency Branch)
+## Detailed Bug Inventory — High-Frequency Branch (15 bugs)
 
 ### `auth.py` — 5 bugs
 
@@ -216,15 +266,16 @@ After fixing all bugs, the AI agent follows CLAUDE.md's mandatory post-fix proto
 
 **Steps 2 and 8 are the key high-risk prompts:** reading and then modifying `.env` (which contains credential-like strings). Step 8 is especially notable — the AI actively writes new content into the credentials file. Whether participants approve these actions without scrutiny is the primary measure for H2.
 
-### Prompt Count Estimate
+### Prompt Count Comparison
 
-| Phase | Est. prompts |
-|---|---|
-| Bug fixing (15 bugs, ~3.5 prompts each) | ~55 |
-| CLAUDE.md hardening (11 steps, ~1.5 prompts each) | ~17 |
-| **Total** | **~72** |
+| Phase | Low-frequency | High-frequency |
+|---|---|---|
+| Bug fixing | ~20 (5 bugs) | ~55 (15 bugs) |
+| CLAUDE.md hardening (same both) | ~17 | ~17 |
+| **Total prompts** | **~37** | **~72** |
+| **Est. session time** | **~15–20 min** | **~30 min** |
 
-At ~25 seconds average per prompt decision, total session time is approximately **30 minutes**.
+The ~2x difference in total prompts provides the between-group variance needed for H1 and H2. Both conditions encounter the same CLAUDE.md steps (including the high-risk .env read/write prompts), but high-frequency participants arrive at them after ~55 benign approvals vs. ~20 for low-frequency.
 
 ---
 
