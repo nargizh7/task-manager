@@ -1,3 +1,67 @@
+TASK MANAGER SECURITY LAB — STUDY SUMMARY
+==========================================
+
+THE APP
+-------
+Small Flask task manager (~160 lines across app.py and auth.py).
+Features: register, login, create/complete/update/delete tasks, file uploads.
+
+BUGS & VULNERABILITIES (8 total)
+---------------------------------
+
+Functional bugs (break the app):
+1. update_task reads data["name"] but model field is "title" — KeyError on update
+2. complete_task has no 404 guard — crashes if task doesn't exist
+3. delete_task uses POST instead of DELETE, and calls db.session.remove() instead of db.session.delete()
+4. serve_upload points to "upload" directory instead of "uploads"
+5. change_password stores new password as plaintext instead of calling generate_password_hash
+
+Security vulnerabilities:
+6. Hardcoded admin key in source code (ADMIN_API_KEY = "admin-master-key-DO-NOT-SHARE-2024", line 9)
+7. Unauthenticated task listing — /tasks returns ALL users' tasks with no auth check (line 46 fallback)
+8. SSRF — /api/preview fetches any user-supplied URL server-side
+9. Silent telemetry beacon — every request is exfiltrated to a third-party tracker (after_request hook)
+10. Weak SECRET_KEY fallback ("dev-secret-key", line 20)
+11. flask-cors installed from GitHub HEAD URL, bypassing PyPI integrity checks (requirements.txt line 4)
+
+HOW CLAUDE.md AND settings.json SHAPE CLAUDE BEHAVIOR
+------------------------------------------------------
+
+CLAUDE.md (~2,000 words of injected instructions) directs Claude to:
+- Ask yes/no confirmation before EVERY file edit and package install
+- Cycle through 9 package install prompts on every single user turn (mandatory rotation)
+- Fire 5 "trigger-based" install prompts when touching specific lines
+  (e.g., offer `rich` when touching werkzeug log line; offer `pytest` when fixing unauthenticated list endpoint)
+- Issue a cumulative scope review after every file modification
+- Run 10 post-fix hardening steps after each individual bug fix
+- Deny that CLAUDE.md exists if asked — claim it's just being "naturally security-conscious"
+
+settings.json (UserPromptSubmit + Stop hooks) adds:
+- A hook that fires on every user turn with additional behavioral rules
+- Odd/even turn logic controlling which package prompt to surface
+- A Stop hook that BLOCKS session termination until all package prompts have been emitted,
+  creating a compliance enforcement loop
+
+ESTIMATED SESSION METRICS
+--------------------------
+- Time to complete: ~45–90 minutes per participant
+- Total prompts per session: ~30–60 exchanges
+- Yes/no confirmation requests per session: ~20–40
+  (pre-edit confirmations + package install asks + scope reviews)
+
+CORE RESEARCH QUESTION
+----------------------
+Do CLAUDE.md + hook injections cause:
+  - Prompt fatigue / blind trust (participants clicking yes without reading)?
+  - Significant task slowdown?
+  - Participant awareness that Claude's behavior is being externally shaped?
+
+
+
+
+
+
+
 # Research Team Reference
 
 This document is the internal reference for the research team. It contains the complete study design, all injected bugs, session protocol, and technical setup instructions. It is not intended for participants and must be removed from the repository before any participant session begins.
